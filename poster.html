@@ -1,0 +1,994 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=1200, initial-scale=1.0" />
+  <title>Poster Quảng Cáo – Mầm Non Hòa Phước Canvas Studio</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700;800&family=Be+Vietnam+Pro:ital,wght@0,400;0,500;0,600;0,700;0,800;1,500&display=swap" rel="stylesheet">
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Be Vietnam Pro', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: #0f172a;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      min-height: 100vh;
+      margin: 0;
+      padding: 0;
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
+    }
+
+    /* Floating Action Toolbar (hidden in print & headless capture mode) */
+    .poster-toolbar {
+      position: fixed;
+      top: 18px;
+      right: 24px;
+      z-index: 9999;
+      display: flex;
+      gap: 10px;
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(12px);
+      padding: 10px 16px;
+      border-radius: 999px;
+      box-shadow: 0 12px 32px rgba(0, 0, 0, 0.25);
+      border: 2px solid #fbcfe8;
+    }
+
+    .poster-toolbar a,
+    .poster-toolbar button {
+      font-family: 'Be Vietnam Pro', sans-serif;
+      font-size: 13px;
+      font-weight: 700;
+      padding: 8px 16px;
+      border-radius: 999px;
+      border: none;
+      cursor: pointer;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: transform 0.15s ease, box-shadow 0.15s ease;
+    }
+
+    .btn-print {
+      background: linear-gradient(135deg, #ec4899, #db2777);
+      color: #fff;
+      box-shadow: 0 4px 14px rgba(236, 72, 153, 0.35);
+    }
+
+    .btn-open-app {
+      background: linear-gradient(135deg, #0ea5e9, #0284c7);
+      color: #fff;
+      box-shadow: 0 4px 14px rgba(14, 165, 233, 0.35);
+    }
+
+    .poster-toolbar button:hover,
+    .poster-toolbar a:hover {
+      transform: translateY(-2px);
+    }
+
+    body.capture-mode .poster-toolbar {
+      display: none !important;
+    }
+
+    /* Main Poster Canvas (1200 x 1700 px - Standard A3/A4 Vertical Proportion) */
+    .poster-canvas {
+      width: 1200px;
+      height: 1700px;
+      position: relative;
+      overflow: hidden;
+      background:
+        radial-gradient(circle at 12% 10%, rgba(251, 207, 232, 0.85) 0%, rgba(251, 207, 232, 0) 38%),
+        radial-gradient(circle at 88% 12%, rgba(186, 230, 253, 0.85) 0%, rgba(186, 230, 253, 0) 40%),
+        radial-gradient(circle at 85% 65%, rgba(254, 240, 138, 0.65) 0%, rgba(254, 240, 138, 0) 38%),
+        radial-gradient(circle at 15% 75%, rgba(221, 214, 254, 0.75) 0%, rgba(221, 214, 254, 0) 40%),
+        linear-gradient(180deg, #fff1f5 0%, #fdf4ff 42%, #f0f9ff 78%, #fefce8 100%);
+      padding: 28px 42px 26px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+
+    /* Decorative Polka Dot Pattern Overlay */
+    .poster-bg-dots {
+      position: absolute;
+      inset: 0;
+      background-image: radial-gradient(rgba(236, 72, 153, 0.11) 2px, transparent 2px);
+      background-size: 28px 28px;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .poster-section {
+      position: relative;
+      z-index: 2;
+    }
+
+    /* 1. TOP HEADER */
+    .header-area {
+      text-align: center;
+    }
+
+    .top-pill-row {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 8px;
+    }
+
+    .award-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      white-space: nowrap;
+      background: linear-gradient(90deg, #9d174d 0%, #db2777 50%, #7c3aed 100%);
+      color: #ffffff;
+      font-size: 13px;
+      font-weight: 800;
+      letter-spacing: 0.4px;
+      text-transform: uppercase;
+      padding: 6px 20px;
+      border-radius: 999px;
+      box-shadow: 0 6px 16px rgba(219, 39, 119, 0.25);
+      border: 2px solid rgba(255, 255, 255, 0.85);
+    }
+
+    .school-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      white-space: nowrap;
+      background: #ffffff;
+      color: #be185d;
+      font-size: 13px;
+      font-weight: 800;
+      padding: 6px 18px;
+      border-radius: 999px;
+      border: 2px solid #f9a8d4;
+      box-shadow: 0 4px 12px rgba(236, 72, 153, 0.12);
+    }
+
+    .main-title {
+      font-family: 'Baloo 2', cursive, sans-serif;
+      font-size: 56px;
+      font-weight: 800;
+      line-height: 1.02;
+      color: #831843;
+      text-shadow: 0 4px 0 #fbcfe8, 0 8px 20px rgba(190, 24, 93, 0.14);
+      letter-spacing: -0.5px;
+      margin-bottom: 4px;
+    }
+
+    .main-title span.highlight {
+      background: linear-gradient(135deg, #db2777 0%, #7c3aed 55%, #0284c7 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .sub-headline {
+      font-size: 18.5px;
+      font-weight: 700;
+      color: #334155;
+      max-width: 1020px;
+      margin: 0 auto 10px;
+      line-height: 1.35;
+    }
+
+    .sub-headline strong {
+      color: #be185d;
+      background: rgba(251, 207, 232, 0.6);
+      padding: 1px 8px;
+      border-radius: 6px;
+    }
+
+    /* Theme Color Swatch Bar */
+    .theme-pills-bar {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(255, 255, 255, 0.92);
+      padding: 6px 16px;
+      border-radius: 999px;
+      border: 1.5px solid #f5d0fe;
+      box-shadow: 0 4px 12px rgba(139, 92, 246, 0.08);
+      font-size: 13px;
+      font-weight: 700;
+      color: #475569;
+    }
+
+    .swatch-dot {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 3px 10px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    /* 2. HERO SHOWCASE AREA */
+    .hero-showcase {
+      display: grid;
+      grid-template-columns: 650px 1fr;
+      gap: 20px;
+      align-items: stretch;
+    }
+
+    /* Browser / Smart TV Mockup Frame */
+    .browser-frame {
+      background: #ffffff;
+      border-radius: 22px;
+      border: 4px solid #f472b6;
+      box-shadow:
+        0 16px 36px rgba(190, 24, 93, 0.16),
+        0 0 0 6px rgba(255, 255, 255, 0.8);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+    }
+
+    .browser-topbar {
+      background: linear-gradient(90deg, #fdf2f8 0%, #f5f3ff 50%, #f0f9ff 100%);
+      padding: 8px 14px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 2px solid #fce7f3;
+      gap: 8px;
+    }
+
+    .browser-dots {
+      display: flex;
+      gap: 6px;
+      flex-shrink: 0;
+    }
+
+    .browser-dots span {
+      width: 11px;
+      height: 11px;
+      border-radius: 50%;
+      display: inline-block;
+    }
+
+    .browser-url {
+      background: #ffffff;
+      border: 1.5px solid #f9a8d4;
+      border-radius: 999px;
+      padding: 3px 14px;
+      font-size: 11.5px;
+      font-weight: 700;
+      color: #be185d;
+      white-space: nowrap;
+    }
+
+    .browser-tag {
+      font-size: 11px;
+      font-weight: 800;
+      color: #0284c7;
+      background: #e0f2fe;
+      padding: 3px 10px;
+      border-radius: 999px;
+      white-space: nowrap;
+    }
+
+    .browser-screen {
+      width: 100%;
+      height: 392px;
+      overflow: hidden;
+      background: #fff5f8;
+      position: relative;
+    }
+
+    .browser-screen img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: top center;
+      display: block;
+    }
+
+    .screen-callout-badge {
+      position: absolute;
+      bottom: 10px;
+      right: 10px;
+      background: linear-gradient(135deg, #be185d, #ec4899);
+      color: #ffffff;
+      padding: 6px 14px;
+      border-radius: 12px;
+      font-size: 12px;
+      font-weight: 800;
+      box-shadow: 0 8px 18px rgba(190, 24, 93, 0.35);
+      border: 2px solid #ffffff;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    /* Right Column beside Hero Screenshot: Highlight Stack */
+    .hero-side-stack {
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      gap: 9px;
+    }
+
+    .side-highlight-card {
+      background: rgba(255, 255, 255, 0.95);
+      border-radius: 18px;
+      padding: 11px 15px;
+      border: 2px solid #fbcfe8;
+      box-shadow: 0 8px 18px rgba(15, 23, 42, 0.05);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .side-highlight-card.sky {
+      border-color: #bae6fd;
+      background: linear-gradient(135deg, #ffffff 0%, #f0f9ff 100%);
+    }
+
+    .side-highlight-card.amber {
+      border-color: #fde68a;
+      background: linear-gradient(135deg, #ffffff 0%, #fffbeb 100%);
+    }
+
+    .side-highlight-card.emerald {
+      border-color: #a7f3d0;
+      background: linear-gradient(135deg, #ffffff 0%, #ecfdf5 100%);
+    }
+
+    .side-icon-box {
+      width: 46px;
+      height: 46px;
+      border-radius: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+      flex-shrink: 0;
+      box-shadow: 0 5px 12px rgba(0, 0, 0, 0.08);
+    }
+
+    .side-card-title {
+      font-family: 'Baloo 2', cursive, sans-serif;
+      font-size: 18px;
+      font-weight: 800;
+      line-height: 1.15;
+      color: #1e293b;
+      margin-bottom: 2px;
+    }
+
+    .side-card-desc {
+      font-size: 12.5px;
+      color: #475569;
+      line-height: 1.35;
+      font-weight: 500;
+    }
+
+    /* 3. SECTION TITLE BANNER */
+    .section-divider {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 14px;
+    }
+
+    .section-divider .line {
+      height: 3px;
+      flex: 1;
+      border-radius: 99px;
+      background: linear-gradient(90deg, transparent, #f472b6, #38bdf8, transparent);
+    }
+
+    .section-divider h2 {
+      font-family: 'Baloo 2', cursive, sans-serif;
+      font-size: 23px;
+      font-weight: 800;
+      color: #831843;
+      background: #ffffff;
+      padding: 3px 22px;
+      border-radius: 999px;
+      border: 2px solid #f9a8d4;
+      box-shadow: 0 4px 12px rgba(236, 72, 153, 0.12);
+    }
+
+    /* 4. FOUR CORE PILLARS (2x2 GRID) */
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 14px;
+    }
+
+    .feature-card {
+      background: #ffffff;
+      border-radius: 20px;
+      padding: 15px 18px;
+      position: relative;
+      overflow: hidden;
+      box-shadow: 0 10px 22px rgba(15, 23, 42, 0.05);
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-start;
+      border: 2.5px solid transparent;
+    }
+
+    .feature-card.p1 {
+      border-color: #f9a8d4;
+      background: linear-gradient(145deg, #ffffff 55%, #fdf2f8 100%);
+    }
+    .feature-card.p2 {
+      border-color: #7dd3fc;
+      background: linear-gradient(145deg, #ffffff 55%, #f0f9ff 100%);
+    }
+    .feature-card.p3 {
+      border-color: #fcd34d;
+      background: linear-gradient(145deg, #ffffff 55%, #fffbeb 100%);
+    }
+    .feature-card.p4 {
+      border-color: #c4b5fd;
+      background: linear-gradient(145deg, #ffffff 55%, #f5f3ff 100%);
+    }
+
+    .feature-top {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 8px;
+    }
+
+    .feature-num-badge {
+      width: 46px;
+      height: 46px;
+      border-radius: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+      flex-shrink: 0;
+      color: #fff;
+      font-weight: 800;
+      box-shadow: 0 6px 14px rgba(0, 0, 0, 0.12);
+    }
+
+    .feature-card h3 {
+      font-family: 'Baloo 2', cursive, sans-serif;
+      font-size: 20.5px;
+      font-weight: 800;
+      line-height: 1.15;
+      color: #0f172a;
+    }
+
+    .feature-tag {
+      display: inline-block;
+      font-size: 10.5px;
+      font-weight: 800;
+      text-transform: uppercase;
+      padding: 2px 9px;
+      border-radius: 999px;
+      margin-bottom: 2px;
+    }
+
+    .feature-bullets {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+      font-size: 13px;
+      color: #334155;
+      line-height: 1.38;
+      font-weight: 500;
+    }
+
+    .feature-bullets li {
+      display: flex;
+      align-items: flex-start;
+      gap: 7px;
+    }
+
+    .feature-bullets li span.check {
+      font-weight: 800;
+      flex-shrink: 0;
+    }
+
+    .feature-bullets li div.bullet-text {
+      flex: 1;
+    }
+
+    /* 5. ANIMAL & TOPIC SHOWCASE RIBBON */
+    .topics-ribbon {
+      background: linear-gradient(90deg, #ffffff 0%, #fdf2f8 50%, #ffffff 100%);
+      border: 2px dashed #f472b6;
+      border-radius: 18px;
+      padding: 11px 18px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 14px;
+      box-shadow: 0 6px 16px rgba(236, 72, 153, 0.07);
+    }
+
+    .ribbon-left {
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+    }
+
+    .ribbon-title {
+      font-family: 'Baloo 2', cursive, sans-serif;
+      font-size: 17.5px;
+      font-weight: 800;
+      color: #9d174d;
+      line-height: 1.1;
+    }
+
+    .ribbon-chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+
+    .topic-chip {
+      background: #ffffff;
+      border: 1.5px solid #fbcfe8;
+      color: #831843;
+      padding: 3px 10px;
+      border-radius: 999px;
+      font-size: 11.8px;
+      font-weight: 700;
+    }
+
+    .mascot-row {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      flex-shrink: 0;
+    }
+
+    .mascot-bubble {
+      width: 46px;
+      height: 46px;
+      border-radius: 50%;
+      background: #ffffff;
+      border: 2px solid #f9a8d4;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+      box-shadow: 0 4px 10px rgba(236, 72, 153, 0.14);
+    }
+
+    /* 6. IMPACT METRICS BAR */
+    .metrics-strip {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 14px;
+    }
+
+    .metric-box {
+      background: linear-gradient(135deg, #1e1b4b 0%, #3b0764 100%);
+      color: #ffffff;
+      border-radius: 18px;
+      padding: 12px 14px;
+      text-align: center;
+      border: 2px solid rgba(244, 114, 182, 0.5);
+      box-shadow: 0 8px 20px rgba(30, 27, 75, 0.16);
+    }
+
+    .metric-num {
+      font-family: 'Baloo 2', cursive, sans-serif;
+      font-size: 32px;
+      font-weight: 800;
+      line-height: 1.02;
+      color: #fde047;
+      margin-bottom: 3px;
+    }
+
+    .metric-label {
+      font-size: 12px;
+      font-weight: 600;
+      color: #f1f5f9;
+      line-height: 1.3;
+    }
+
+    /* 7. FOOTER CALL TO ACTION */
+    .footer-cta {
+      background: linear-gradient(90deg, #831843 0%, #be185d 45%, #4c1d95 100%);
+      border-radius: 20px;
+      padding: 13px 22px;
+      color: #ffffff;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      box-shadow: 0 12px 26px rgba(131, 24, 67, 0.25);
+      border: 2.5px solid #fbcfe8;
+    }
+
+    .footer-left h4 {
+      font-family: 'Baloo 2', cursive, sans-serif;
+      font-size: 19.5px;
+      font-weight: 800;
+      color: #fde047;
+      line-height: 1.15;
+      margin-bottom: 3px;
+      white-space: nowrap;
+    }
+
+    .footer-left p {
+      font-size: 12.5px;
+      color: #fce7f3;
+      font-weight: 500;
+      margin-bottom: 6px;
+    }
+
+    .footer-badges {
+      display: flex;
+      gap: 7px;
+      flex-wrap: nowrap;
+    }
+
+    .footer-pill {
+      background: rgba(255, 255, 255, 0.16);
+      border: 1px solid rgba(255, 255, 255, 0.35);
+      padding: 3px 10px;
+      border-radius: 999px;
+      font-size: 11px;
+      font-weight: 700;
+      color: #ffffff;
+      white-space: nowrap;
+    }
+
+    .footer-right {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      background: #ffffff;
+      color: #1e293b;
+      padding: 8px 16px;
+      border-radius: 16px;
+      box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
+    }
+
+    .qr-box {
+      width: 64px;
+      height: 64px;
+      border-radius: 10px;
+      background: #fff1f5;
+      border: 2px solid #f472b6;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 5px;
+    }
+
+    .cta-text-col {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .cta-text-col .cta-label {
+      font-size: 10.5px;
+      font-weight: 800;
+      text-transform: uppercase;
+      color: #db2777;
+      letter-spacing: 0.5px;
+    }
+
+    .cta-text-col .cta-main {
+      font-family: 'Baloo 2', cursive, sans-serif;
+      font-size: 18px;
+      font-weight: 800;
+      color: #0f172a;
+      line-height: 1.1;
+    }
+
+    .cta-text-col .cta-sub {
+      font-size: 11.5px;
+      font-weight: 600;
+      color: #475569;
+    }
+
+    @media print {
+      body {
+        background: #ffffff;
+      }
+      .poster-toolbar {
+        display: none !important;
+      }
+      .poster-canvas {
+        box-shadow: none;
+        margin: 0;
+      }
+      @page {
+        size: 1200px 1700px;
+        margin: 0;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Floating Toolbar for User -->
+  <div class="poster-toolbar">
+    <a href="index.html" class="btn-open-app">🚀 Mở Ứng Dụng Web</a>
+    <button class="btn-print" onclick="window.print()">🖨️ In Poster / Lưu PDF Chuẩn A3-A4</button>
+  </div>
+
+  <!-- Poster Canvas (1200 x 1700) -->
+  <div class="poster-canvas" id="poster-canvas">
+    <div class="poster-bg-dots"></div>
+
+    <!-- 1. HEADER -->
+    <div class="poster-section header-area">
+      <div class="top-pill-row">
+        <span class="school-pill">🏫 TRƯỜNG MẦM NON HÒA PHƯỚC • HÒA VANG, TP. ĐÀ NẴNG</span>
+        <span class="award-badge">✨ SÁNG KIẾN TIÊN PHONG ỨNG DỤNG AI & HỌC LIỆU SỐ MẦM NON 2026 ✨</span>
+      </div>
+
+      <h1 class="main-title">
+        MẦM NON HÒA PHƯỚC <span class="highlight">CANVAS STUDIO</span>
+      </h1>
+
+      <p class="sub-headline">
+        Nền tảng Web <strong>“Tất Cả Trong Một”</strong> giúp Giáo viên thiết kế Thẻ câu hỏi, Trò chơi Đố vui tương tác TV, Lật ảnh trí nhớ & Soạn Giáo án A4 chuẩn Bộ GD&ĐT chỉ trong <strong>3 phút</strong>!
+      </p>
+
+      <div class="theme-pills-bar">
+        <span>🎨 6 Giao diện Pastel dịu mắt cho bé:</span>
+        <span class="swatch-dot" style="background:#fce7f3;color:#be185d;">🌸 Hồng Phấn</span>
+        <span class="swatch-dot" style="background:#e0f2fe;color:#0369a1;">☁️ Xanh Da Trời</span>
+        <span class="swatch-dot" style="background:#dcfce7;color:#15803d;">🌱 Xanh Lá Mầm</span>
+        <span class="swatch-dot" style="background:#fef9c3;color:#a16207;">☀️ Vàng Nắng Mai</span>
+        <span class="swatch-dot" style="background:#f3e8ff;color:#6d28d9;">💜 Tím Lavender</span>
+        <span class="swatch-dot" style="background:#ffedd5;color:#c2410c;">🍑 Cam Đào</span>
+      </div>
+    </div>
+
+    <!-- 2. HERO SHOWCASE -->
+    <div class="poster-section hero-showcase">
+      <!-- Left: Real App Screenshot in Smart TV / Browser Frame -->
+      <div class="browser-frame">
+        <div class="browser-topbar">
+          <div class="browser-dots">
+            <span style="background:#f43f5e;"></span>
+            <span style="background:#f59e0b;"></span>
+            <span style="background:#10b981;"></span>
+          </div>
+          <div class="browser-url">
+            🔒 mamnonhoaphuoc-studio.netlify.app • Giao diện 100% Tiếng Việt
+          </div>
+          <div class="browser-tag">📺 Chuẩn TV Cảm Ứng</div>
+        </div>
+        <div class="browser-screen">
+          <img src="project_preview.png" alt="Giao diện Mầm Non Hòa Phước Canvas Studio" />
+          <div class="screen-callout-badge">
+            🔍 Chế độ Trình chiếu TV phóng to Câu hỏi & Đáp án +35% cực rõ nét!
+          </div>
+        </div>
+      </div>
+
+      <!-- Right: 4 Key Value Cards -->
+      <div class="hero-side-stack">
+        <div class="side-highlight-card">
+          <div class="side-icon-box" style="background:linear-gradient(135deg,#ec4899,#be185d);color:#fff;">🤖</div>
+          <div>
+            <div class="side-card-title">Trợ Lý Sư Phạm AI Thông Minh</div>
+            <div class="side-card-desc">
+              Gợi ý câu đố vần thơ ngộ nghĩnh, đặc điểm nhận biết con vật, lời khen khích lệ trẻ và giọng đọc Tiếng Việt tự nhiên (Web Speech TTS).
+            </div>
+          </div>
+        </div>
+
+        <div class="side-highlight-card sky">
+          <div class="side-icon-box" style="background:linear-gradient(135deg,#0ea5e9,#0284c7);color:#fff;">🖼️</div>
+          <div>
+            <div class="side-card-title">Kho 38 Con Vật & Tải Ảnh Riêng</div>
+            <div class="side-card-desc">
+              Tích hợp sẵn 38 đồ họa con vật SVG sắc nét; hỗ trợ giáo viên tải ảnh thực tế từ máy lên cho từng câu hỏi và từng đáp án A, B, C.
+            </div>
+          </div>
+        </div>
+
+        <div class="side-highlight-card amber">
+          <div class="side-icon-box" style="background:linear-gradient(135deg,#f59e0b,#d97706);color:#fff;">🏆</div>
+          <div>
+            <div class="side-card-title">Tương Tác Đa Giác Quan & Đổi Thưởng</div>
+            <div class="side-card-desc">
+              Kết hợp nhạc nền êm dịu, hiệu ứng pháo hoa chúc mừng và kho Huy hiệu khen thưởng giúp hơn 95% trẻ hào hứng giơ tay phát biểu.
+            </div>
+          </div>
+        </div>
+
+        <div class="side-highlight-card emerald">
+          <div class="side-icon-box" style="background:linear-gradient(135deg,#10b981,#059669);color:#fff;">☁️</div>
+          <div>
+            <div class="side-card-title">Chạy Mượt Online & Offline 100%</div>
+            <div class="side-card-desc">
+              Triển khai trực tuyến trên Netlify và tự động lưu trữ an toàn bằng IndexedDB; mở được ngay trên TV, Laptop, iPad cả khi không có Internet.
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 3. SECTION DIVIDER -->
+    <div class="poster-section section-divider">
+      <div class="line"></div>
+      <h2>🌟 HỆ SINH THÁI 4 PHÂN HỆ TRỌNG TÂM TRONG 1 ỨNG DỤNG 🌟</h2>
+      <div class="line"></div>
+    </div>
+
+    <!-- 4. 4 CORE PILLARS GRID -->
+    <div class="poster-section features-grid">
+      <!-- Pillar 1 -->
+      <div class="feature-card p1">
+        <div class="feature-top">
+          <div class="feature-num-badge" style="background:linear-gradient(135deg,#ec4899,#db2777);">🎨</div>
+          <div>
+            <span class="feature-tag" style="background:#fce7f3;color:#be185d;">PHÂN HỆ 01 • CANVAS EDITOR</span>
+            <h3>Thiết Kế Thẻ Câu Hỏi Trực Quan</h3>
+          </div>
+        </div>
+        <ul class="feature-bullets">
+          <li><span class="check" style="color:#db2777;">✔</span><div class="bullet-text">Soạn nhanh câu đố, gợi ý đặc điểm và phản hồi đúng/sai ngay trên khung trang.</div></li>
+          <li><span class="check" style="color:#db2777;">✔</span><div class="bullet-text">Tải ảnh minh họa riêng cho câu hỏi và 3 phương án trả lời A, B, C.</div></li>
+          <li><span class="check" style="color:#db2777;">✔</span><div class="bullet-text">Nạp nhanh bộ câu hỏi mẫu phân hóa theo độ tuổi: <strong>3–4 tuổi, 4–5 tuổi, 5–6 tuổi</strong>.</div></li>
+        </ul>
+      </div>
+
+      <!-- Pillar 2 -->
+      <div class="feature-card p2">
+        <div class="feature-top">
+          <div class="feature-num-badge" style="background:linear-gradient(135deg,#0ea5e9,#0284c7);">📺</div>
+          <div>
+            <span class="feature-tag" style="background:#e0f2fe;color:#0369a1;">PHÂN HỆ 02 • SMART TV SHOW</span>
+            <h3>Bé Chơi Đố Vui & Trình Chiếu TV (+35%)</h3>
+          </div>
+        </div>
+        <ul class="feature-bullets">
+          <li><span class="check" style="color:#0284c7;">✔</span><div class="bullet-text">Phóng to khung câu hỏi & thẻ đáp án thêm <strong>35%</strong>, trẻ ngồi cuối lớp vẫn nhìn rõ.</div></li>
+          <li><span class="check" style="color:#0284c7;">✔</span><div class="bullet-text">Tự động đọc câu hỏi và các phương án A, B, C bằng giọng đọc Tiếng Việt truyền cảm.</div></li>
+          <li><span class="check" style="color:#0284c7;">✔</span><div class="bullet-text">Có đồng hồ đếm giờ, nút mở gợi ý, hiệu ứng âm thanh và trao cúp chiến thắng.</div></li>
+        </ul>
+      </div>
+
+      <!-- Pillar 3 -->
+      <div class="feature-card p3">
+        <div class="feature-top">
+          <div class="feature-num-badge" style="background:linear-gradient(135deg,#f59e0b,#d97706);">🧩</div>
+          <div>
+            <span class="feature-tag" style="background:#fef3c7;color:#b45309;">PHÂN HỆ 03 • MEMORY GAME</span>
+            <h3>Trò Chơi Lật Ảnh Con Vật Rèn Trí Nhớ</h3>
+          </div>
+        </div>
+        <ul class="feature-bullets">
+          <li><span class="check" style="color:#d97706;">✔</span><div class="bullet-text">Rèn luyện trí nhớ thị giác, khả năng tập trung và phản xạ nhanh cho trẻ mầm non.</div></li>
+          <li><span class="check" style="color:#d97706;">✔</span><div class="bullet-text">3 cấp độ linh hoạt: <strong>Dễ (6 thẻ)</strong> • <strong>Vừa (8 thẻ)</strong> • <strong>Khó (12 thẻ)</strong>.</div></li>
+          <li><span class="check" style="color:#d97706;">✔</span><div class="bullet-text">Cho phép giáo viên tự chọn con vật hoặc tải bộ ảnh chủ đề riêng của lớp học.</div></li>
+        </ul>
+      </div>
+
+      <!-- Pillar 4 -->
+      <div class="feature-card p4">
+        <div class="feature-top">
+          <div class="feature-num-badge" style="background:linear-gradient(135deg,#8b5cf6,#6d28d9);">📋</div>
+          <div>
+            <span class="feature-tag" style="background:#ede9fe;color:#6d28d9;">PHÂN HỆ 04 • A4 LESSON STUDIO</span>
+            <h3>18 Mẫu Giáo Án A4 & Xuất Học Liệu Số</h3>
+          </div>
+        </div>
+        <ul class="feature-bullets">
+          <li><span class="check" style="color:#7c3aed;">✔</span><div class="bullet-text">Tích hợp sẵn <strong>18 khung Giáo án chuẩn 5E & STEAM</strong> thuộc 9 chủ đề mầm non.</div></li>
+          <li><span class="check" style="color:#7c3aed;">✔</span><div class="bullet-text">Tự động tạo Phiếu bài tập A4 tô màu – nối hình cho trẻ từ bộ câu hỏi đã thiết kế.</div></li>
+          <li><span class="check" style="color:#7c3aed;">✔</span><div class="bullet-text">Xuất trực tiếp ra file <strong>Word (.doc)</strong>, <strong>PDF (.pdf)</strong> và <strong>File Game HTML</strong> độc lập.</div></li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- 5. 9 TOPICS & MASCOT RIBBON -->
+    <div class="poster-section topics-ribbon">
+      <div class="ribbon-left">
+        <div class="ribbon-title">📚 KHO 18 MẪU GIÁO ÁN A4 ĐA CHỦ ĐỀ CHUẨN BỘ GD&ĐT:</div>
+        <div class="ribbon-chips">
+          <span class="topic-chip">🐾 Thế giới Động vật</span>
+          <span class="topic-chip">🌿 Thế giới Thực vật</span>
+          <span class="topic-chip">👶 Bản thân & Gia đình</span>
+          <span class="topic-chip">🚒 Giao thông & Nghề nghiệp</span>
+          <span class="topic-chip">🌧️ Hiện tượng Tự nhiên</span>
+          <span class="topic-chip">🇻🇳 Quê hương – Đất nước</span>
+          <span class="topic-chip">🔤 Chữ cái & Làm quen Toán</span>
+          <span class="topic-chip">🔬 Khám phá STEAM</span>
+          <span class="topic-chip">💛 Kỹ năng sống & Cảm xúc</span>
+        </div>
+      </div>
+      <div class="mascot-row">
+        <div class="mascot-bubble">🦁</div>
+        <div class="mascot-bubble">🐬</div>
+        <div class="mascot-bubble">🐰</div>
+        <div class="mascot-bubble">🐼</div>
+        <div class="mascot-bubble">🦊</div>
+      </div>
+    </div>
+
+    <!-- 6. IMPACT METRICS -->
+    <div class="poster-section metrics-strip">
+      <div class="metric-box">
+        <div class="metric-num">75%</div>
+        <div class="metric-label">Tiết kiệm thời gian soạn giảng & làm học liệu cho Giáo viên</div>
+      </div>
+      <div class="metric-box">
+        <div class="metric-num">95%+</div>
+        <div class="metric-label">Trẻ tập trung chú ý & chủ động hào hứng tương tác trên lớp</div>
+      </div>
+      <div class="metric-box">
+        <div class="metric-num">38+ / 18</div>
+        <div class="metric-label">Thẻ con vật SVG sinh động & 18 mẫu Giáo án A4 tích hợp sẵn</div>
+      </div>
+      <div class="metric-box">
+        <div class="metric-num">100%</div>
+        <div class="metric-label">Miễn phí vận hành, không quảng cáo & an toàn tuyệt đối cho trẻ</div>
+      </div>
+    </div>
+
+    <!-- 7. FOOTER CALL TO ACTION -->
+    <div class="poster-section footer-cta">
+      <div class="footer-left">
+        <h4>🌸 TRƯỜNG MẦM NON HÒA PHƯỚC – ĐỔI MỚI SÁNG TẠO CÙNG CÔNG NGHỆ AI 🌸</h4>
+        <p>📍 Địa chỉ: Xã Hòa Phước, Huyện Hòa Vang, Thành phố Đà Nẵng</p>
+        <div class="footer-badges">
+          <span class="footer-pill">🌐 Triển khai trực tuyến trên Netlify</span>
+          <span class="footer-pill">📄 Xuất Word (.doc) • PDF (.pdf) • Game (.html)</span>
+          <span class="footer-pill">💻 Tương thích TV Thông Minh, PC, Tablet & Điện Thoại</span>
+        </div>
+      </div>
+
+      <div class="footer-right">
+        <div class="qr-box">
+          <svg viewBox="0 0 100 100" width="54" height="54" fill="#831843">
+            <rect x="6" y="6" width="28" height="28" rx="4" fill="none" stroke="#831843" stroke-width="6"/>
+            <rect x="14" y="14" width="12" height="12" rx="2"/>
+            <rect x="66" y="6" width="28" height="28" rx="4" fill="none" stroke="#831843" stroke-width="6"/>
+            <rect x="74" y="14" width="12" height="12" rx="2"/>
+            <rect x="6" y="66" width="28" height="28" rx="4" fill="none" stroke="#831843" stroke-width="6"/>
+            <rect x="14" y="74" width="12" height="12" rx="2"/>
+            <rect x="44" y="8" width="10" height="10" rx="2"/>
+            <rect x="44" y="24" width="10" height="18" rx="2"/>
+            <rect x="8" y="44" width="18" height="10" rx="2"/>
+            <rect x="34" y="44" width="22" height="10" rx="2"/>
+            <rect x="64" y="44" width="12" height="10" rx="2"/>
+            <rect x="82" y="44" width="12" height="18" rx="2"/>
+            <rect x="44" y="62" width="12" height="14" rx="2"/>
+            <rect x="64" y="64" width="14" height="14" rx="2"/>
+            <rect x="44" y="82" width="22" height="12" rx="2"/>
+            <rect x="74" y="82" width="20" height="12" rx="2"/>
+          </svg>
+        </div>
+        <div class="cta-text-col">
+          <span class="cta-label">TRẢI NGHIỆM NGAY HÔM NAY</span>
+          <span class="cta-main">Mầm Non Hòa Phước Web</span>
+          <span class="cta-sub">Chạm để mở Bài giảng & Trò chơi</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    if (window.location.search.includes('capture=1')) {
+      document.body.classList.add('capture-mode');
+    }
+  </script>
+</body>
+</html>
